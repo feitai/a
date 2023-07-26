@@ -19,3 +19,33 @@ spring来完成组装.
 
 
 大学生类: 姓名 ，身高，体重.
+
+这个项目实现了一个通用的容器类Container,可以用来统计添加进来的对象的最大值、最小值、平均值等。主要涉及了以下几点:
+
+1. Container类是一个泛型类,可以添加任意类型的对象T。
+
+2. Container里面注入了两个接口:Measure和Filter。
+   Measure接口用来计算对象的某个指标,如BMI指数等。
+   Filter接口用来过滤不合格的对象。
+
+3. 实现这两个接口的具体类是StudentBmiMeasure和StudentBmiFilter。
+   StudentBmiMeasure实现了根据Student对象计算BMI的方法。
+   StudentBmiFilter实现了对Student对象进行校验的过滤方法。
+
+4. 通过@Component注解,在Spring容器中注册这些实现类。
+
+5. Config类通过@ComponentScan扫描指定的包,让Spring容器加载这些类。
+
+6. 在TestMain的main方法中,从Spring容器中获取Container实例,然后添加Student对象。
+   在添加对象时,会先进行Filter过滤,过滤不合格的Student。
+   然后调用Measure的方法计算BMI,根据BMI更新Container中的max、min、avg等统计值。
+
+7. 这样通过Spring的IOC和DI,实现了容器和两个组件接口的解耦合。
+   Container不依赖具体的组件实现类,在运行时通过依赖注入的方式组装起来。
+   还可以通过配置注入不同的实现类,实现容器的可扩展和灵活配置。
+
+8. @Resource注解可以通过name属性指定按照名称注入,这在多个实现类时很有用。
+   也可以不指定name,直接按类型注入。
+
+9. Spring的强大之处在于通过DI和AOP实现了业务逻辑的低耦合、可扩展。这个例子体现了一些基本思想。
+   对于学习Spring的新手来说,需要逐步理解这些设计思想,掌握核心注解的用法。
