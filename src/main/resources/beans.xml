@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 定义第一个Bean -->
+    <bean id="s" class="video.spring.Test1.Student">
+        <!-- 添加Bean的依赖项和属性配置 DI过程-->
+        <property name="id" value="100"></property>
+        <property name="name" value="战魂"></property>
+        <!--ref表示从另一个spring容器内引用托管的bean-->
+        <property name="address" ref="addr"></property>
+    </bean>
+    <bean id="addr" class="video.spring.Test1.Address">
+        <!-- 添加Bean的依赖项和属性配置 DI过程-->
+        <property name="province" value="湖南省"></property>
+        <property name="city" value="衡阳市"></property>
+
+    </bean>
+
+
+</beans>

@@ -22,6 +22,11 @@
             <version>8.0.27</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.2.0.RELEASE</version> <!-- 替换为你所使用的 Spring Framework 版本 -->
+        </dependency>
 
         <dependency>
             <groupId>junit</groupId>
@@ -36,6 +41,33 @@
                 <artifactId>spring-context</artifactId>
                 <version>5.2.3.RELEASE</version>
             </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>2.5.4</version> <!-- 替换成你希望使用的Spring Boot版本 -->
+        </dependency>
+
+
+        <!-- Spring Core -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>5.2.3.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.14.1</version> <!-- 替换为最新的Log4j版本 -->
+        </dependency>
 
     </dependencies>
 
