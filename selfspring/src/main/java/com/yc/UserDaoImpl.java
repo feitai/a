@@ -6,7 +6,7 @@ import org.ycframework.annotation.YcRepository;
 /**
  * Description: UserDao
  * Author: heyv
- * Time: 2023 2023/7/27 15:53
+ * Time: 2023 2023/7/27 15:53`
  */
 @YcRepository
 public class UserDaoImpl implements UserDao {

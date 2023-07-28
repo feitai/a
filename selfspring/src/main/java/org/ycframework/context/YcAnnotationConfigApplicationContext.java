@@ -108,6 +108,7 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
             String beanId = entry.getKey();
             System.out.println(beanId);
             YcBeanDefinition ybd = entry.getValue();
+            //非懒加载模式和非原型模式，将该Bean加入BeanMap
             if(!ybd.isLazy() && !ybd.getScope().equalsIgnoreCase("prototype")) {
                 String classInfo = ybd.getClassInfo();
                 System.out.println(classInfo);
@@ -235,9 +236,11 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
 
     @Override
     public Object getBean(String beanId) {
+        //首先，先从beanMap中寻找该Bean，存在直接返回实例化的对象，否则执行下一步骤
         if (beanMap.containsKey(beanId)) {
             return beanMap.get(beanId);
         }
+        //在beanDefinitionMap寻找，确认该Bean是否被容器加载
         if (!beanDefinitionMap.containsKey(beanId)) {
             throw new RuntimeException("Spring容器未加载该bean：" + beanId);
         }
@@ -249,17 +252,28 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
                 String classPath = bd.getClassInfo();
                 Object beanObj = Class.forName(classPath).newInstance();
                 beanMap.put(beanId, beanObj);
+                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
                 doDi();
                 return beanMap.get(beanId);
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                 throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
             }
         } else {
-            // 非懒加载模式，直接创建并托管该Bean
+
+            /*
+            TODo
+                非懒加载模式，直接创建并托管该Bean
+                这种情况下除了懒模式，还包括以下几种：
+                                          1.延迟初始化
+                                          2. 条件化Bean（   @Conditional  ）
+                                          3.动态Bean加载 （ BeanDefinitionRegistry 接口）
+             */
             try {
                 String classPath = bd.getClassInfo();
                 Object beanObj = Class.forName(classPath).newInstance();
                 beanMap.put(beanId, beanObj);
+                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
+                doDi();
                 return beanMap.get(beanId);
             } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                 throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
