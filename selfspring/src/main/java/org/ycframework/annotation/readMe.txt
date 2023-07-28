@@ -45,3 +45,34 @@
           会将该注解相关的信息可以被例如javadoc此类的工具文档化。 注意：Documented是一个标记注解，没有成员。
 
           4.@Inherited：使用@Inherited定义的注解具备继承性
+
+
+          git init    初始化
+          git add .     从工作区加入到暂存区
+          git commit -m "信息"    从暂存区到版本库
+          git push      git hub.
+
+          ========================
+          日志:
+          	级别 ：OFF > FATAL > ERROR >          WARN >    INFO >  DEBUG >  TRACE > ALL
+          	appender:  输出
+                   		 console, file, rollingfile(按时间, 按大小,间隔)
+                		 模式: PatternLayout
+          	logger:日志器
+                 		配置特定目录怎么输出
+                 		 root  默认情况.
+          	Logger对象    debug() error()  trace()....
+          ==============================
+          注解:   j2se   标记
+
+             @Target(  TYPE, METHOD, FIELD, CONSTRUCTOR )
+             @Retention( Runtime )              保持策略 RESOURCE, CLASS
+          @interface 注解名{
+
+          }
+
+
+          注解解析器:
+              类的Class实例,        isAnnotationPresent()
+                                        注解类     cls.getAnnotation(注解.class)
+                                       值=  注解类.属性( );

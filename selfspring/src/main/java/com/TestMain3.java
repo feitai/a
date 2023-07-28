@@ -1,4 +1,4 @@
-package org.ycframework;
+package com;
 
 import com.yc.MyConfig;
 import com.yc.UserBiz;
