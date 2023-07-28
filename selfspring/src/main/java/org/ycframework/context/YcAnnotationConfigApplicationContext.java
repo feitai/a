@@ -10,6 +10,7 @@ import org.ycframework.annotation.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -23,14 +24,14 @@ import java.util.*;
 public class YcAnnotationConfigApplicationContext implements YcApplicationContext{
     private Logger logger = LoggerFactory.getLogger(YcAnnotationConfigApplicationContext.class);
     //存每个托管bean的定义信息
-    private Map<String, YcBeanDefinition> beanDefinitions = new HashMap<String, YcBeanDefinition>();
+    private Map<String, YcBeanDefinition> beanDefinitionMap = new HashMap<String, YcBeanDefinition>();
     //存每个实例化的bean
     private   Map<String, Object> beanMap = new HashMap<String, Object>();
     //存系统属性  ，db.properties
     private  Properties pros = new Properties();
 
     public YcAnnotationConfigApplicationContext(Class...configClasses){
-
+        try{
         //读取系统信息属性
         pros = System.getProperties();
         List<String> toScanPackagePath = new ArrayList<String>();
@@ -52,10 +53,70 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
             //扫描配置类，形成YcBeanDefinition
             recursiveLoadBeanDefinition (basePackages);
         }
-
         //创建Bean,(考虑多种情况，是否是懒加载 ，是否是单例)
-
+        createBean();
         //循环所有托管的Bean(带@Autowire,@Resopse,@Value,将这些包带有dic的进行注入
+            doDi();
+    }catch (Exception e){
+    e.printStackTrace();
+        }
+    }
+
+    private void  doDi() throws IllegalAccessException, ClassNotFoundException, InstantiationException {
+        //循环的是 beanMap 这是托管Bean
+        for (Map.Entry<String,Object> entry : beanMap.entrySet()) {
+            String beanId = entry.getKey();
+            Object beanObj=entry.getValue();
+            //情况一  属性上有@YcResource
+            Field [] fields = beanObj.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if(field.isAnnotationPresent(YcResource.class)) {
+                    YcResource ycResource = (YcResource)field.getAnnotation(YcResource.class);
+                    String toDiBeanId = ycResource.name();
+                    Object obj = getToDiBean(toDiBeanId);
+                    field.setAccessible(true);
+                    field.set(beanObj, obj);
+                }
+            }
+
+        }
+    }
+
+    private Object getToDiBean(String toDiBeanId) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+        if( beanMap.containsKey(toDiBeanId) ){
+            return beanMap.get(toDiBeanId);
+        }
+        //判断 beanMap 没有bean 是否是因为lazy
+        if(! beanDefinitionMap.containsKey(toDiBeanId) ){
+            throw new RuntimeException("spring容器未加载该bean"+toDiBeanId);
+        }
+        YcBeanDefinition bd = beanDefinitionMap.get(toDiBeanId);
+        if(bd.isLazy()){
+            //因为是懒模式，所以未托管
+            String classPath = bd.getClassInfo();
+            Object beanObj = Class.forName(classPath).newInstance();
+            beanMap.put(toDiBeanId, beanObj);
+            return beanObj;
+        }
+        return null;
+    }
+
+    private void createBean () throws Exception {
+
+        //读取beanDefinitionMap的信息，然然后根据信息创建Bean，将其存入map中
+        for(Map.Entry<String,YcBeanDefinition> entry :beanDefinitionMap.entrySet()) {
+            String beanId = entry.getKey();
+            System.out.println(beanId);
+            YcBeanDefinition ybd = entry.getValue();
+            if(!ybd.isLazy() && !ybd.getScope().equalsIgnoreCase("prototype")) {
+                String classInfo = ybd.getClassInfo();
+                System.out.println(classInfo);
+                Object obj = Class.forName(classInfo).newInstance();
+                beanMap.put(beanId, obj);
+                System.out.println("Spring托管了" + beanId +"==>"+ classInfo);
+                logger.trace("Spring托管了" + beanId +"==>"+ classInfo);
+            }
+        }
     }
 
     private void recursiveLoadBeanDefinition(String[] basePackages) {
@@ -101,30 +162,109 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
         }
         for(File f : classFiles){
             if(f.isDirectory()){
-                findPackageClasses(f.getAbsolutePath(), basePackage + "." + f.getName());
+                findPackageClasses(f.getAbsolutePath(), basePackage + "." + f.getName().replaceAll(".class", ""));
             }else {
-                //是class文件，取出此文件，判断class是否含有@Component
+                //是class文件，取出此文件，判断class是否含有@Component 或者间接含有@Component的类
                 URLClassLoader uc = new URLClassLoader(new URL[]{});
                 Class cls  = null;
                 try {
                     cls = uc.loadClass(basePackage + "."+f.getName().replaceAll(".class", ""));
-                } catch (ClassNotFoundException e) {
+                    if(cls.isAnnotationPresent(YcComponent.class)
+                            || cls.isAnnotationPresent(YcService.class)
+                            || cls.isAnnotationPresent(YcRepository.class)
+                            || cls.isAnnotationPresent(YcConfiguration.class)
+                            || cls.isAnnotationPresent(YcController.class)){
+                        logger.info("Loading了一个待加载的类"+cls.getName());
+                        YcBeanDefinition bd = new YcBeanDefinition();
+                        if (cls.isAnnotationPresent(YcLazy.class)){
+                            bd.setLazy(true);
+                        }
+                        if (cls.isAnnotationPresent(YcScope.class)){
+                            YcScope ycScope = (YcScope) cls.getAnnotation(YcScope.class);
+                            String scope = ycScope.value();
+                            bd.setScope(scope);
+                        }
+                        bd.setClassInfo( cls.getName().replaceAll(".class", ""));
+                        //存入YcBeanDefinitionMap 中，取Beanid
+                        String baseId = getBeanId(cls);
+                        this.beanDefinitionMap.put(baseId, bd);
+
+                }
+
+            }catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
-                if(cls.isAnnotationPresent(YcComponent.class)
-                || cls.isAnnotationPresent(YcService.class)
-                || cls.isAnnotationPresent(YcRepository.class)
-                || cls.isAnnotationPresent(YcConfiguration.class)
-                || cls.isAnnotationPresent(YcController.class)){
-                logger.info("Loading了一个待加载的类"+cls.getName());
-            }
             }
         }
+    }
+/**
+ *
+
+ 获取一个待托管的 Bean的类的 beanId
+ */
+    private String getBeanId(Class cls) {
+        YcComponent  ycComponent = (YcComponent)cls.getAnnotation(YcComponent.class);
+        YcController ycController = (YcController)cls.getAnnotation(YcController.class);
+        YcService ycService = (YcService) cls.getAnnotation(YcService.class);
+        YcRepository ycRepository = (YcRepository)cls.getAnnotation(YcRepository.class);
+
+        YcConfiguration ycConfiguration = (YcConfiguration)cls.getAnnotation(YcConfiguration.class);
+
+        if(ycConfiguration !=null){
+            return cls.getSimpleName();   //全路径名
+        }
+        String beanId = null;
+        if(ycComponent != null){
+            beanId = ycComponent.value();
+        }
+        if(ycController != null){
+            beanId = ycController.value();
+        }
+        if(ycRepository != null){
+            beanId = ycRepository.value();
+        }
+        if(ycService != null){
+            beanId = ycService.value();
+        }
+        if(beanId == null || "".equals(beanId)){
+            String typeName = cls.getSimpleName();
+            beanId = typeName.substring(0,1).toLowerCase() + typeName.substring(1);
+        }
+        return beanId;
     }
 
     @Override
     public Object getBean(String beanId) {
+        if (beanMap.containsKey(beanId)) {
+            return beanMap.get(beanId);
+        }
+        if (!beanDefinitionMap.containsKey(beanId)) {
+            throw new RuntimeException("Spring容器未加载该bean：" + beanId);
+        }
 
-        return  null;
+        YcBeanDefinition bd = beanDefinitionMap.get(beanId);
+        if (bd.isLazy()) {
+            // 因为是懒加载模式，所以先创建并托管该Bean
+            try {
+                String classPath = bd.getClassInfo();
+                Object beanObj = Class.forName(classPath).newInstance();
+                beanMap.put(beanId, beanObj);
+                doDi();
+                return beanMap.get(beanId);
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
+            }
+        } else {
+            // 非懒加载模式，直接创建并托管该Bean
+            try {
+                String classPath = bd.getClassInfo();
+                Object beanObj = Class.forName(classPath).newInstance();
+                beanMap.put(beanId, beanObj);
+                return beanMap.get(beanId);
+            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
+            }
+        }
     }
+
 }

@@ -16,4 +16,5 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 @YcComponent
 public @interface YcController {
+    String value() default "";
 }

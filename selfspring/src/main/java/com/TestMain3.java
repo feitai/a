@@ -13,7 +13,7 @@ import org.ycframework.context.YcApplicationContext;
 public class TestMain3 {
     public static void main(String[] args) {
         YcApplicationContext ac = new YcAnnotationConfigApplicationContext(MyConfig.class);
-//        UserBiz ub = (UserBiz)ac.getBean("userBizImpl");
-//        ub.add("李四");
+        UserBiz ub = (UserBiz)ac.getBean("userBizImpl");
+        ub.add("李四");
     }
 }
