@@ -2,6 +2,8 @@ package com;
 
 import com.yc.MyConfig;
 import com.yc.UserBiz;
+import com.yc.UserBizImpl;
+import com.yc.UserDaoImpl;
 import org.ycframework.context.YcAnnotationConfigApplicationContext;
 import org.ycframework.context.YcApplicationContext;
 
@@ -15,5 +17,6 @@ public class TestMain3 {
         YcApplicationContext ac = new YcAnnotationConfigApplicationContext(MyConfig.class);
         UserBiz ub = (UserBiz)ac.getBean("userBizImpl");
         ub.add("李四");
+
     }
 }

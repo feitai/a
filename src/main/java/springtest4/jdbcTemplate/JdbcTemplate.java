@@ -1,7 +1,6 @@
-package springtest4.jdbcTemplate;
+package main.java.springtest4.jdbcTemplate;
 
-import springtest4.datasource.MyDataSource;
-
+import main.java.springtest4.datasource.MyDataSource;
 import javax.sql.DataSource;
 
 import java.sql.Connection;

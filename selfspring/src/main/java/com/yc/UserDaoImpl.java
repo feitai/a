@@ -15,5 +15,9 @@ public class UserDaoImpl implements UserDao {
         System.out.println("dao添加了"+uname);
     }
 
+    public void showAll(){
+        System.out.println("Show all users");
+    }
+
 
 }

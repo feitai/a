@@ -5,6 +5,7 @@ import com.yc.UserBizImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.stereotype.Component;
 import org.ycframework.annotation.*;
 
 import java.io.File;
@@ -15,6 +16,9 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static javax.xml.soap.SOAPConnectionFactory.newInstance;
 
 /**
  * Description: YcAnnotationConfigApplicationContext
@@ -24,9 +28,9 @@ import java.util.*;
 public class YcAnnotationConfigApplicationContext implements YcApplicationContext{
     private Logger logger = LoggerFactory.getLogger(YcAnnotationConfigApplicationContext.class);
     //存每个托管bean的定义信息
-    private Map<String, YcBeanDefinition> beanDefinitionMap = new HashMap<String, YcBeanDefinition>();
+    private Map<String, YcBeanDefinition> beanDefinitionMap = new ConcurrentHashMap<String, YcBeanDefinition>();
     //存每个实例化的bean
-    private   Map<String, Object> beanMap = new HashMap<String, Object>();
+    private   Map<String, Object> beanMap = new ConcurrentHashMap<String, Object>();
     //存系统属性  ，db.properties
     private  Properties pros = new Properties();
 
@@ -209,6 +213,7 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
         YcService ycService = (YcService) cls.getAnnotation(YcService.class);
         YcRepository ycRepository = (YcRepository)cls.getAnnotation(YcRepository.class);
 
+
         YcConfiguration ycConfiguration = (YcConfiguration)cls.getAnnotation(YcConfiguration.class);
 
         if(ycConfiguration !=null){
@@ -234,51 +239,85 @@ public class YcAnnotationConfigApplicationContext implements YcApplicationContex
         return beanId;
     }
 
+//    @Override
+//    public Object getBean(String beanId) {
+//        //首先，先从beanMap中寻找该Bean，存在直接返回实例化的对象，否则执行下一步骤
+//        if (beanMap.containsKey(beanId)) {
+//            return beanMap.get(beanId);
+//        }
+//        //在beanDefinitionMap寻找，确认该Bean是否被容器加载
+//        if (!beanDefinitionMap.containsKey(beanId)) {
+//            throw new RuntimeException("Spring容器未加载该bean：" + beanId);
+//        }
+//
+//        YcBeanDefinition bd = beanDefinitionMap.get(beanId);
+//        if (bd.isLazy()) {
+//            // 因为是懒加载模式，所以先创建并托管该Bean
+//            try {
+//                String classPath = bd.getClassInfo();
+//                Object beanObj = Class.forName(classPath).newInstance();
+//                beanMap.put(beanId, beanObj);
+//                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
+//                doDi();
+//                return beanMap.get(beanId);
+//            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
+//            }
+//        } else {
+//            /*
+//            TODo
+//                非懒加载模式，直接创建并托管该Bean
+//                这种情况下除了懒模式，还包括以下几种：
+//                                          1.延迟初始化
+//                                          2. 条件化Bean（   @Conditional  ）
+//                                          3.动态Bean加载 （ BeanDefinitionRegistry 接口）
+//             */
+//            try {
+//                String classPath = bd.getClassInfo();
+//                Object beanObj = Class.forName(classPath).newInstance();
+//                beanMap.put(beanId, beanObj);
+//                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
+//                doDi();
+//                return beanMap.get(beanId);
+//            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
+//            }
+//        }
+//    }
+
     @Override
-    public Object getBean(String beanId) {
-        //首先，先从beanMap中寻找该Bean，存在直接返回实例化的对象，否则执行下一步骤
-        if (beanMap.containsKey(beanId)) {
-            return beanMap.get(beanId);
+    public Object getBean(String beanId){
+        YcBeanDefinition bd = this.beanDefinitionMap.get(beanId);
+        if(bd == null) {
+            throw new RuntimeException("容器中未加载该Bean");
         }
-        //在beanDefinitionMap寻找，确认该Bean是否被容器加载
-        if (!beanDefinitionMap.containsKey(beanId)) {
-            throw new RuntimeException("Spring容器未加载该bean：" + beanId);
-        }
-
-        YcBeanDefinition bd = beanDefinitionMap.get(beanId);
-        if (bd.isLazy()) {
-            // 因为是懒加载模式，所以先创建并托管该Bean
+        String scope = bd.getScope();
+        if("prototype".equalsIgnoreCase(scope)) {
+            Object obj = null;
             try {
-                String classPath = bd.getClassInfo();
-                Object beanObj = Class.forName(classPath).newInstance();
-                beanMap.put(beanId, beanObj);
-                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
-                doDi();
-                return beanMap.get(beanId);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
-            }
-        } else {
-
-            /*
-            TODo
-                非懒加载模式，直接创建并托管该Bean
-                这种情况下除了懒模式，还包括以下几种：
-                                          1.延迟初始化
-                                          2. 条件化Bean（   @Conditional  ）
-                                          3.动态Bean加载 （ BeanDefinitionRegistry 接口）
-             */
-            try {
-                String classPath = bd.getClassInfo();
-                Object beanObj = Class.forName(classPath).newInstance();
-                beanMap.put(beanId, beanObj);
-                //TODO：需注意  一定要执行doDi()方法，否则虽然 beanMap 中含有该Bean 但是没有注入，所以返回的依然是一个null
-                doDi();
-                return beanMap.get(beanId);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                throw new RuntimeException("创建并托管Bean时出现异常：" + e.getMessage());
+                obj = Class.forName(bd.getClassInfo()).newInstance();
+                return obj;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
+            if(this.beanMap.containsKey(beanId)){
+                return this.beanMap.get(beanId);
+            }
+            if(bd.isLazy()){
+                Object obj = null;
+                try {
+                    obj=Class.forName(bd.getClassInfo()).newInstance();
+                    this.beanMap.put(beanId, obj);
+                    doDi();
+                    return obj;
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                return obj;
+            }
+
+        return null;
     }
 
 }

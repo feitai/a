@@ -1,9 +1,10 @@
-package springtest4.user;
+package main.java.springtest4.user;
 
+import main.java.springtest4.jdbcTemplate.JdbcTemplate;
+import main.java.springtest4.jdbcTemplate.RowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import springtest4.jdbcTemplate.JdbcTemplate;
-import springtest4.jdbcTemplate.RowMapper;
+
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -22,11 +23,11 @@ public class BankAccountDao extends JdbcTemplate {
     public BankAccountDao(DataSource dataSource) {
         super(dataSource);
     }
-    public List<BankAccount> findAll(){
-       return  super.executeQuery("select * from bank", new RowMapper<BankAccount>() {
+    public List<springtest4.user.BankAccount> findAll(){
+       return  super.executeQuery("select * from bank", new RowMapper<springtest4.user.BankAccount>() {
             @Override
-            public BankAccount mapper(ResultSet rs, int i) throws SQLException {
-                BankAccount ba = new BankAccount();
+            public springtest4.user.BankAccount mapper(ResultSet rs, int i) throws SQLException {
+                springtest4.user.BankAccount ba = new springtest4.user.BankAccount();
                 ba.setId(rs.getInt(1));
                 ba.setBalance(rs.getInt(2));
                 return ba;

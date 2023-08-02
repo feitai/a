@@ -1,5 +1,6 @@
 package com.yc;
 
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.ycframework.annotation.YcComponentScan;
 import org.ycframework.annotation.YcConfiguration;
 
@@ -10,6 +11,7 @@ import org.ycframework.annotation.YcConfiguration;
  */
 @YcConfiguration
 @YcComponentScan(basePackage ={ "com.yc"})
+@EnableAspectJAutoProxy   //启用aspectj 支持
 public class MyConfig {
 
 }

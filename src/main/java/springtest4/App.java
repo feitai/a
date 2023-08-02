@@ -1,11 +1,11 @@
-package springtest4;
+package main.java.springtest4;
 
+import main.java.springtest4.user.BankAccountDao;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import springtest4.Config;
-import springtest4.user.BankAccount;
-import springtest4.user.BankAccountDao;
 
+import springtest4.user.BankAccount;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -32,7 +32,7 @@ public class App {
 //        System.out.println(conn);
 
         BankAccountDao bad = (BankAccountDao) ac.getBean("bankAccountDao");
-        List<BankAccount> list = bad.findAll();
+        List<BankAccount> list =  bad.findAll();
         for (BankAccount b : list) {
             System.out.println(b);
         }

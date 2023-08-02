@@ -1,4 +1,4 @@
-package springtest4.jdbcTemplate;
+package main.java.springtest4.jdbcTemplate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

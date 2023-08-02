@@ -1,4 +1,4 @@
-package springtest4.datasource;
+package main.java.springtest4.datasource;
 
 
 import org.springframework.beans.factory.annotation.Value;
