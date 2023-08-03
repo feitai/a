@@ -14,6 +14,7 @@
         <module>spring_Aop</module>
         <module>aoc</module>
         <module>JDBC_Template</module>
+        <module>txbank</module>
     </modules>
 
     <properties>
@@ -37,7 +38,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>5.3.24</version>
+            <version>5.2.3.RELEASE</version>
         </dependency>
 
 
@@ -83,12 +84,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.1</version>
-            <scope>compile</scope>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
@@ -103,15 +99,16 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>5.3.9</version> <!-- 版本号可能需要根据您的需求进行调整 -->
+            <version>5.2.3.RELEASE</version>
         </dependency>
 
         <!-- Spring TX -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
-            <version>5.3.9</version> <!-- 版本号可能需要根据您的需求进行调整 -->
+            <version>5.2.3.RELEASE</version>
         </dependency>
+
         <!-- ASM -->
         <dependency>
             <groupId>org.ow2.asm</groupId>
@@ -119,6 +116,37 @@
             <version>9.1</version> <!-- 使用最新版本 -->
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.2.6</version> <!-- 替换为最新版本 -->
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.13.1</version>
+                <scope>compile</scope>
+            </dependency>
+
+
+
+        </dependencies>
+    </dependencyManagement>
+
 
 </project>
