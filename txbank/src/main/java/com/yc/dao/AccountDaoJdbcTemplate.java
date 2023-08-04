@@ -23,6 +23,7 @@ public class AccountDaoJdbcTemplate implements AccountDao{
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+//    @Qualifier(value = "druiddataSource")
     public void init(DataSource dataSource){
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -43,7 +44,7 @@ public class AccountDaoJdbcTemplate implements AccountDao{
     @Override
     public void update(int accountid, double money) {
         this.jdbcTemplate.update(
-                "update accounts set balance = balance +?  where accountid =?",
+                "update accounts set balance = ?  where accountid =? ",
                 money, accountid
         );
 

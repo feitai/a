@@ -1,5 +1,6 @@
 package com.yc.biz;
 
+import com.yc.bean.Account;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,6 +10,19 @@ import org.springframework.stereotype.Component;
  */
 
 public interface AccountBiz {
-   public String addAccount(String name);
+   //开户
+   public Account openAccount(double money);
+
+   //存钱
+   public Account  desposit(int accountid,double money);
+
+   //取钱
+   public Account  withdrow(int accountid,double money);
+
+   //转账
+   public Account  tranfer(int accountid,double money,int toAccountid);
+   //查询帐户
+
+   public Account findAccount(int accountid);
 
 }
